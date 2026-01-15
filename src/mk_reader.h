@@ -49,6 +49,8 @@ static inline mk_document load_content(char *file_path){
 	while(fgets(data, 500, mk_file) != NULL){
 		printf("%s", data);
 	}
+
+	fclose(mk_file);
 	return doc;
 }
 
