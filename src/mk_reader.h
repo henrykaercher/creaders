@@ -1,6 +1,8 @@
 #ifndef MK_READER_H
 #define MK_READER_H
 
+#include <stdio.h>
+
 static const char *heading_prefixes[] = {
     "# ", "## ", "### "
 };
@@ -35,12 +37,31 @@ mk_document {
 }*/
 
 static inline mk_document load_content(char *file_path){
-	//load using malloc
+	mk_document doc = {0};
+	char data[500];
+	FILE* mk_file = fopen(file_path, "r");
+
+	if(!mk_file){
+		printf("No file detected\n");
+		return doc;
+	}
+
+	while(fgets(data, 500, mk_file) != NULL){
+		printf("%s", data);
+	}
+	return doc;
 }
 
-static inline void unload_content(char *file){
-	//unload using free
-	free(file);
-}
+/*static inline void unload_content(mk_document *document){
+	if(!document) return;
+
+	for(size_t i = 0; i < document->count; i++){
+        free(document->blocks[i].text);
+    }
+
+    free(document->blocks);
+    document->blocks = NULL;
+    document->count = 0;
+}*/
 
 #endif
