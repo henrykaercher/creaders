@@ -1,0 +1,6 @@
+make
+make.old
+buid/
+docs/
+*.txt
+*.bin
