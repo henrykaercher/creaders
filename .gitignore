@@ -1,6 +1,6 @@
 make
 make.old
-buid/
+build/
 docs/
 *.txt
 *.bin
