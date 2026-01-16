@@ -58,7 +58,6 @@ static inline void load_content(char *file_path){
 	size_t bytes_read = fread(content, 1, file_size, mk_file);
 	content[bytes_read] = '\0';
 
-
 	int lines = 0;
 	for(size_t i = 0; i < bytes_read; i++){
 		if(content[i] == '\n') lines++;
@@ -69,21 +68,16 @@ static inline void load_content(char *file_path){
     }
 
 	printf("Size of file: %zu\nNumber of lines: %d\n", bytes_read, lines);
+	printf(content);
 
 	fclose(mk_file);
 	free(content);
 }
 
-/*static inline void unload_content(mk_document *document){
-	if(!document) return;
+static inline mk_document read_content(mk_block_type type, int same_block_counter, char *content){
+	mk_document doc = {0};
 
-	for(size_t i = 0; i < document->count; i++){
-        free(document->blocks[i].text);
-    }
-
-    free(document->blocks);
-    document->blocks = NULL;
-    document->count = 0;
-}*/
+	return doc;
+}
 
 #endif
