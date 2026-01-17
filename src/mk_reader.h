@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 static const char *heading_prefixes[] = {
     "# ", "## ", "### "
@@ -74,10 +76,41 @@ static inline void load_content(char *file_path){
 	free(content);
 }
 
-static inline mk_document read_content(mk_block_type type, int same_block_counter, char *content){
-	mk_document doc = {0};
+static inline mk_document read_content(char *content){
+    mk_document doc = {0};
 
-	return doc;
+    char *line = strtok(content, "\n");
+    while(line){
+        mk_block *new_blocks = realloc(doc.blocks, sizeof(mk_block) * (doc.block_count + 1));
+        if(!new_blocks){
+            break;
+        }
+        doc.blocks = new_blocks;
+
+        mk_block *current = &doc.blocks[doc.block_count];
+        memset(current, 0, sizeof(mk_block));
+
+        if(line[0] == '#'){
+            current->type = MK_HEADING;
+            int level = 0;
+            while(line[level] == '#') level++;
+            current->level = level;
+            current->text = strdup(line + level + 1);
+        }
+        else if((line[0] == '-' || line[0] == '*') && line[1] == ' '){
+            current->type = MK_LIST;
+            current->text = strdup(line + 2);
+        }
+        else{
+            current->type = MK_PARAGRAPH;
+            current->text = strdup(line);
+        }
+
+        doc.block_count++;
+        line = strtok(NULL, "\n");
+    }
+
+    return doc;
 }
 
 #endif
