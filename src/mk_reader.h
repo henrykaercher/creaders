@@ -30,16 +30,7 @@ typedef struct {
     size_t block_count;
 } mk_document;
 
-/*
-mk_document {
-    blocks[0] = HEADING("# Title")
-    blocks[1] = PARAGRAPH("Some paragraph text.")
-    blocks[2] = HEADING("## Subtitle")
-    blocks[3] = LIST("- item 1\n- item 2")
-    blocks[4] = CODE("int x = 0;")
-}*/
-
-static inline void load_content(char *file_path){
+static inline char *void load_content(char *file_path){
 	FILE* mk_file = fopen(file_path, "rb");
 
 	if(!mk_file){
@@ -69,18 +60,21 @@ static inline void load_content(char *file_path){
         lines++;
     }
 
+	//these prints are just for visual feedback, remove them latter
 	printf("Size of file: %zu\nNumber of lines: %d\n", bytes_read, lines);
 	printf(content);
 
 	fclose(mk_file);
-	free(content);
+	return content;
 }
 
 static inline mk_document read_content(char *content){
     mk_document doc = {0};
 
+	//this will show only one line, probably the last one, need to append the content
     char *line = strtok(content, "\n");
     while(line){
+		//explain this
         mk_block *new_blocks = realloc(doc.blocks, sizeof(mk_block) * (doc.block_count + 1));
         if(!new_blocks){
             break;
@@ -91,6 +85,7 @@ static inline mk_document read_content(char *content){
         memset(current, 0, sizeof(mk_block));
 
         if(line[0] == '#'){
+			//loop for diferent ammounts of '#'
             current->type = MK_HEADING;
             int level = 0;
             while(line[level] == '#') level++;
