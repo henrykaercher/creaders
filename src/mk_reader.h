@@ -4,11 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-
-static const char *heading_prefixes[] = {
-    "# ", "## ", "### "
-};
 
 typedef enum {
     MK_HEADING,
@@ -30,12 +25,23 @@ typedef struct {
     size_t block_count;
 } mk_document;
 
-static inline char *void load_content(char *file_path){
+static inline char *mk_strndup(const char *src, size_t n){
+    char *dst = malloc(n + 1);
+    if (!dst)
+        return NULL;
+
+    memcpy(dst, src, n);
+    dst[n] = '\0';
+    return dst;
+}
+
+
+static inline char *load_content(char *file_path){
 	FILE* mk_file = fopen(file_path, "rb");
 
 	if(!mk_file){
 		printf("No file detected\n");
-		return;
+		return NULL;
 	}
 
 	fseek(mk_file, 0, SEEK_END);
@@ -45,7 +51,7 @@ static inline char *void load_content(char *file_path){
 	char *content = malloc(file_size + 1);
 	if(!content){
 		fclose(mk_file);
-		return;
+		return NULL;
 	}
 
 	size_t bytes_read = fread(content, 1, file_size, mk_file);
@@ -60,52 +66,87 @@ static inline char *void load_content(char *file_path){
         lines++;
     }
 
-	//these prints are just for visual feedback, remove them latter
-	printf("Size of file: %zu\nNumber of lines: %d\n", bytes_read, lines);
-	printf(content);
-
 	fclose(mk_file);
 	return content;
 }
 
 static inline mk_document read_content(char *content){
     mk_document doc = {0};
+    char *p = content;
 
-	//this will show only one line, probably the last one, need to append the content
-    char *line = strtok(content, "\n");
-    while(line){
-		//explain this
-        mk_block *new_blocks = realloc(doc.blocks, sizeof(mk_block) * (doc.block_count + 1));
-        if(!new_blocks){
-            break;
+    while(*p){
+        char *line_start = p;
+        char *line_end = strchr(p, '\n');
+
+        size_t len;
+        if(line_end){
+            len = (size_t)(line_end - line_start);
+            p = line_end + 1;
+        }else{
+            len = strlen(line_start);
+            p += len;
         }
-        doc.blocks = new_blocks;
 
+        if(len == 0) continue;
+
+        mk_block *new_blocks = realloc(doc.blocks, sizeof(mk_block) * (doc.block_count + 1));
+        if(!new_blocks)
+            break;
+
+        doc.blocks = new_blocks;
         mk_block *current = &doc.blocks[doc.block_count];
         memset(current, 0, sizeof(mk_block));
 
-        if(line[0] == '#'){
-			//loop for diferent ammounts of '#'
-            current->type = MK_HEADING;
+        if(line_start[0] == '#'){
             int level = 0;
-            while(line[level] == '#') level++;
-            current->level = level;
-            current->text = strdup(line + level + 1);
+            while(level < (int)len && line_start[level] == '#')
+                level++;
+
+            if(level < (int)len && line_start[level] == ' '){
+                current->type = MK_HEADING;
+                current->level = level;
+                current->text = mk_strndup(line_start + level + 1,
+                                        len - level - 1);
+            }else{
+                current->type = MK_PARAGRAPH;
+                current->text = mk_strndup(line_start, len);
+            }
         }
-        else if((line[0] == '-' || line[0] == '*') && line[1] == ' '){
+        else if(len >= 2 && line_start[0] == '-' && line_start[1] == ' '){
             current->type = MK_LIST;
-            current->text = strdup(line + 2);
+            current->text = mk_strndup(line_start + 2, len - 2);
         }
         else{
             current->type = MK_PARAGRAPH;
-            current->text = strdup(line);
+            current->text = mk_strndup(line_start, len);
         }
 
         doc.block_count++;
-        line = strtok(NULL, "\n");
     }
 
     return doc;
 }
+
+static inline void mk_document_free(mk_document *doc){
+    if (!doc || !doc->blocks)
+        return;
+
+    for (size_t i = 0; i < doc->block_count; i++){
+        free(doc->blocks[i].text);
+    }
+
+    free(doc->blocks);
+    doc->blocks = NULL;
+    doc->block_count = 0;
+}
+
+/*char *buffer = load_content(path);
+mk_document doc = read_content(buffer);
+
+ usar doc 
+
+mk_document_free(&doc);
+free(buffer);
+*/
 
 #endif
