@@ -98,8 +98,7 @@ static inline mk_document read_content(char *content){
 
         if(line_start[0] == '#'){
             int level = 0;
-            while(level < (int)len && line_start[level] == '#')
-                level++;
+            while(level < (int)len && line_start[level] == '#') level++;
 
             if(level < (int)len && line_start[level] == ' '){
                 current->type = MK_HEADING;
@@ -119,7 +118,7 @@ static inline mk_document read_content(char *content){
 			char *code_start = p; 
 			char *code_end = strstr(code_start, "```\n");
 			size_t code_len;
-			if (code_end) {
+			if(code_end){
 				code_len = (size_t)(code_end - code_start);
 				p = code_end + 4;
 			} else {
@@ -140,7 +139,7 @@ static inline mk_document read_content(char *content){
 }
 
 static inline void mk_document_free(mk_document *doc){
-    if (!doc || !doc->blocks)
+    if(!doc || !doc->blocks)
         return;
 
     for(size_t i = 0; i < doc->block_count; i++){
