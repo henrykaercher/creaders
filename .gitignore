@@ -1,5 +1,6 @@
 make
 make.old
+main.c
 build/
 docs/
 *.txt
