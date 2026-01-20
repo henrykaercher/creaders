@@ -35,7 +35,6 @@ static inline char *mk_strndup(const char *src, size_t n){
     return dst;
 }
 
-
 static inline char *load_content(char *file_path){
 	FILE* mk_file = fopen(file_path, "rb");
 
@@ -62,7 +61,7 @@ static inline char *load_content(char *file_path){
 		if(content[i] == '\n') lines++;
 	}
 
-	if (bytes_read > 0 && content[bytes_read - 1] != '\n') {
+	if(bytes_read > 0 && content[bytes_read - 1] != '\n'){
         lines++;
     }
 
@@ -105,8 +104,7 @@ static inline mk_document read_content(char *content){
             if(level < (int)len && line_start[level] == ' '){
                 current->type = MK_HEADING;
                 current->level = level;
-                current->text = mk_strndup(line_start + level + 1,
-                                        len - level - 1);
+                current->text = mk_strndup(line_start + level + 1, len - level - 1);
             }else{
                 current->type = MK_PARAGRAPH;
                 current->text = mk_strndup(line_start, len);
@@ -116,6 +114,20 @@ static inline mk_document read_content(char *content){
             current->type = MK_LIST;
             current->text = mk_strndup(line_start + 2, len - 2);
         }
+        else if(len >= 3 && line_start[0] == '`' && line_start[1] == '`' && line_start[2] == '`'){
+            current->type = MK_CODE;
+			char *code_start = p; 
+			char *code_end = strstr(code_start, "```\n");
+			size_t code_len;
+			if (code_end) {
+				code_len = (size_t)(code_end - code_start);
+				p = code_end + 4;
+			} else {
+				code_len = strlen(code_start);
+				p += code_len;
+			}
+            current->text = mk_strndup(code_start, code_len);
+		}
         else{
             current->type = MK_PARAGRAPH;
             current->text = mk_strndup(line_start, len);
@@ -131,7 +143,7 @@ static inline void mk_document_free(mk_document *doc){
     if (!doc || !doc->blocks)
         return;
 
-    for (size_t i = 0; i < doc->block_count; i++){
+    for(size_t i = 0; i < doc->block_count; i++){
         free(doc->blocks[i].text);
     }
 
@@ -139,14 +151,5 @@ static inline void mk_document_free(mk_document *doc){
     doc->blocks = NULL;
     doc->block_count = 0;
 }
-
-/*char *buffer = load_content(path);
-mk_document doc = read_content(buffer);
-
- usar doc 
-
-mk_document_free(&doc);
-free(buffer);
-*/
 
 #endif
