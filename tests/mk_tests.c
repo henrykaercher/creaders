@@ -7,7 +7,7 @@ int main(){
 
 	printf("%zu\n", doc.block_count);
 
-	for (size_t i = 0; i < doc.block_count; i++) {
+	for(size_t i = 0; i < doc.block_count; i++){
 		mk_block *b = &doc.blocks[i];
 
 		printf("---- block %zu ----\n", i);
