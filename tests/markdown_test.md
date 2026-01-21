@@ -22,3 +22,7 @@ int main(){
 ```
 
 Here is more text.
+
+Now a image:
+
+![Local Image] (2.png)

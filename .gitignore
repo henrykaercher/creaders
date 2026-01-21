@@ -5,3 +5,5 @@ build/
 docs/
 *.txt
 *.bin
+*.png
+*.jpeg
