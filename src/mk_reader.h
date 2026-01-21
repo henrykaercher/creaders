@@ -15,21 +15,20 @@ typedef enum {
 	MK_QUOTE
 } mk_block_type;
 
-typedef struct {
+typedef struct{
     mk_block_type type;
     char *text;
     int level;
 } mk_block;
 
-typedef struct {
+typedef struct{
     mk_block *blocks;
     size_t block_count;
 } mk_document;
 
 static inline char *mk_strndup(const char *src, size_t n){
     char *dst = malloc(n + 1);
-    if (!dst)
-        return NULL;
+    if (!dst) return NULL;
 
     memcpy(dst, src, n);
     dst[n] = '\0';
@@ -90,8 +89,7 @@ static inline mk_document read_content(char *content){
         if(len == 0) continue;
 
         mk_block *new_blocks = realloc(doc.blocks, sizeof(mk_block) * (doc.block_count + 1));
-        if(!new_blocks)
-            break;
+        if(!new_blocks) break;
 
         doc.blocks = new_blocks;
         mk_block *current = &doc.blocks[doc.block_count];
@@ -155,8 +153,7 @@ static inline mk_document read_content(char *content){
 }
 
 static inline void mk_document_free(mk_document *doc){
-    if(!doc || !doc->blocks)
-        return;
+    if(!doc || !doc->blocks) return;
 
     for(size_t i = 0; i < doc->block_count; i++){
         free(doc->blocks[i].text);
