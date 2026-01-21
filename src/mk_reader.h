@@ -10,6 +10,7 @@ typedef enum {
     MK_PARAGRAPH,
     MK_LIST,
     MK_CODE,
+	MK_IMAGE,
     MK_LINK
 } mk_block_type;
 
@@ -126,11 +127,14 @@ static inline mk_document read_content(char *content){
 			}
             current->text = mk_strndup(code_start, code_len);
 		}
-        if(line_start[0] == '!' && line_start[1] == '['){
-            current->type = MK_LINK;
+		else if((line_start[0] == '!' && line_start[1] == '[') || (line_start[0] == '[')){
 			char *url_start = strchr(line_start, '(');
-			char *url_end = strchr(line_start, ')');
-			if(url_start && url_end && url_end > url_start) current->text = mk_strndup(url_start + 1, url_end - url_start - 1);
+			char *url_end   = strchr(line_start, ')');
+
+			if(url_start && url_end && url_end > url_start){
+				current->type =	(line_start[0] == '!') ? MK_IMAGE : MK_LINK;
+				current->text = mk_strndup(url_start + 1, (size_t)(url_end - url_start - 1));
+			}
 		}
         else{
             current->type = MK_PARAGRAPH;
