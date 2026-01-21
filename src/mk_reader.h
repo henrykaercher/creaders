@@ -11,7 +11,8 @@ typedef enum {
     MK_LIST,
     MK_CODE,
 	MK_IMAGE,
-    MK_LINK
+    MK_LINK,
+	MK_QUOTE
 } mk_block_type;
 
 typedef struct {
@@ -135,6 +136,12 @@ static inline mk_document read_content(char *content){
 				current->type =	(line_start[0] == '!') ? MK_IMAGE : MK_LINK;
 				current->text = mk_strndup(url_start + 1, (size_t)(url_end - url_start - 1));
 			}
+		}
+		else if(line_start[0] == '>'){
+            current->type = MK_QUOTE;
+			char *start = line_start + 1;
+			if(*start == ' ') start++;
+            current->text = mk_strndup(line_start + 2, len - 2);
 		}
         else{
             current->type = MK_PARAGRAPH;

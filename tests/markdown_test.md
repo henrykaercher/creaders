@@ -4,6 +4,8 @@
 
 Here is a paragraph of text.
 
+> Quotes are important too
+
 here is another paragraph of text.
 
 Here is a list:
