@@ -1,6 +1,6 @@
 # CReaders
 
-CReaders is a small collection of a header-only libraries for reading and normalizing their content by returning this content read to use for any use case.
+CReaders is a small collection of a header-only C libraries for parsing structured text formats and exposing their content as block-based data structures.
 
 ## Extensions available
  - Markdown
