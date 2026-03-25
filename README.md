@@ -15,6 +15,7 @@ CReaders is a small collection of header-only C libraries for parsing structured
 Include the header for the format you want:
 
 ```c
+#define MK_READER_IMPLEMENTATION
 #include "mk_reader.h"
 ```
 
