@@ -72,12 +72,12 @@ char *load_content(const char *file_path){
 
 mk_document read_content(const char *content){
     mk_document doc = {0};
-    char *p = content;
+    const char *p = content;
     int position_order = 0;
 
     while(*p){
-        char *line_start = p;
-        char *line_end = strchr(p, '\n');
+        const char *line_start = p;
+        const char *line_end = strchr(p, '\n');
 
         size_t len;
         if(line_end){
@@ -123,7 +123,7 @@ mk_document read_content(const char *content){
         }
         else if(len >= 3 && line_start[0] == '`' && line_start[1] == '`' && line_start[2] == '`'){
             current->type = MK_CODE;
-			char *code_start = p; 
+			const char *code_start = p;
 			char *code_end = strstr(code_start, "```\n");
 			size_t code_len;
 			if(code_end){
@@ -150,7 +150,7 @@ mk_document read_content(const char *content){
 		}
 		else if(line_start[0] == '>'){
             current->type = MK_QUOTE;
-			char *start = line_start + 1;
+			const char *start = line_start + 1;
 			if(*start == ' ') start++;
             current->text = mk_strndup(line_start + 2, len - 2);
             position_order++;
