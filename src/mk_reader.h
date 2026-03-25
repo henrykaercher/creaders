@@ -49,7 +49,7 @@ char *load_content(const char *file_path){
 	FILE* mk_file = fopen(file_path, "rb");
 
 	if(!mk_file){
-		printf("No file detected\n");
+        perror("fopen");
 		return NULL;
 	}
 
