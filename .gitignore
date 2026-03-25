@@ -1,5 +1,7 @@
 make
 make.old
+test_mk
+test_mk.old
 main.c
 build/
 docs/
@@ -7,3 +9,4 @@ docs/
 *.bin
 *.png
 *.jpeg
+*.o
