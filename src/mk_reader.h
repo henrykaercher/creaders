@@ -66,15 +66,6 @@ char *load_content(const char *file_path){
 	size_t bytes_read = fread(content, 1, file_size, mk_file);
 	content[bytes_read] = '\0';
 
-	int lines = 0;
-	for(size_t i = 0; i < bytes_read; i++){
-		if(content[i] == '\n') lines++;
-	}
-
-	if(bytes_read > 0 && content[bytes_read - 1] != '\n'){
-        lines++;
-    }
-
 	fclose(mk_file);
 	return content;
 }
