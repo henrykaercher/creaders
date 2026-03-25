@@ -2,8 +2,11 @@
 #include "../src/mk_reader.h"
 
 int main(void){
-	//hardcoded path, change that for your own path
-	char *buffer = load_content("/home/muser/devtools/c/creaders/tests/etc/markdown_test.md");
+	char *buffer = load_content("etc/markdown_test.md");
+	if (!buffer) {
+		return 1;
+	}
+
 	mk_document doc = read_content(buffer);
 
 	printf("%zu\n", doc.block_count);
