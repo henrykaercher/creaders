@@ -19,6 +19,7 @@ typedef struct{
     mk_block_type type;
     char *text;
     int level;
+    int pos;
 } mk_block;
 
 typedef struct{
@@ -72,6 +73,7 @@ static inline char *load_content(char *file_path){
 static inline mk_document read_content(char *content){
     mk_document doc = {0};
     char *p = content;
+    int position_order = 0;
 
     while(*p){
         char *line_start = p;
@@ -103,14 +105,21 @@ static inline mk_document read_content(char *content){
                 current->type = MK_HEADING;
                 current->level = level;
                 current->text = mk_strndup(line_start + level + 1, len - level - 1);
+
+                position_order++;
+                current->pos = position_order;
             }else{
                 current->type = MK_PARAGRAPH;
                 current->text = mk_strndup(line_start, len);
+                position_order++;
+                current->pos = position_order;
             }
         }
         else if(len >= 2 && line_start[0] == '-' && line_start[1] == ' '){
             current->type = MK_LIST;
             current->text = mk_strndup(line_start + 2, len - 2);
+            position_order++;
+            current->pos = position_order;
         }
         else if(len >= 3 && line_start[0] == '`' && line_start[1] == '`' && line_start[2] == '`'){
             current->type = MK_CODE;
@@ -125,6 +134,8 @@ static inline mk_document read_content(char *content){
 				p += code_len;
 			}
             current->text = mk_strndup(code_start, code_len);
+            position_order++;
+            current->pos = position_order;
 		}
 		else if((line_start[0] == '!' && line_start[1] == '[') || (line_start[0] == '[')){
 			char *url_start = strchr(line_start, '(');
@@ -133,6 +144,8 @@ static inline mk_document read_content(char *content){
 			if(url_start && url_end && url_end > url_start){
 				current->type =	(line_start[0] == '!') ? MK_IMAGE : MK_LINK;
 				current->text = mk_strndup(url_start + 1, (size_t)(url_end - url_start - 1));
+                position_order++;
+                current->pos = position_order;
 			}
 		}
 		else if(line_start[0] == '>'){
@@ -140,10 +153,14 @@ static inline mk_document read_content(char *content){
 			char *start = line_start + 1;
 			if(*start == ' ') start++;
             current->text = mk_strndup(line_start + 2, len - 2);
+            position_order++;
+            current->pos = position_order;
 		}
         else{
             current->type = MK_PARAGRAPH;
             current->text = mk_strndup(line_start, len);
+            position_order++;
+            current->pos = position_order;
         }
 
         doc.block_count++;
