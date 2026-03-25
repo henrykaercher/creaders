@@ -27,7 +27,7 @@ typedef struct{
 
 char *mk_strndup(const char *src, size_t n);
 char *load_content(const char *file_path);
-mk_document read_content(char *content);
+mk_document read_content(const char *content);
 void mk_document_free(mk_document *doc);
 
 #ifdef MK_READER_IMPLEMENTATION
@@ -70,7 +70,7 @@ char *load_content(const char *file_path){
 	return content;
 }
 
-mk_document read_content(char *content){
+mk_document read_content(const char *content){
     mk_document doc = {0};
     char *p = content;
     int position_order = 0;
