@@ -1,4 +1,5 @@
 #include <stdio.h>
+#define MK_READER_IMPLEMENTATION
 #include "../src/mk_reader.h"
 
 int main(void){

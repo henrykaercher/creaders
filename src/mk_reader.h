@@ -1,9 +1,7 @@
 #ifndef MK_READER_H
 #define MK_READER_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 typedef enum {
     MK_HEADING,
@@ -27,7 +25,18 @@ typedef struct{
     size_t block_count;
 } mk_document;
 
-static inline char *mk_strndup(const char *src, size_t n){
+char *mk_strndup(const char *src, size_t n);
+char *load_content(const char *file_path);
+mk_document read_content(char *content);
+void mk_document_free(mk_document *doc);
+
+#ifdef MK_READER_IMPLEMENTATION
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char *mk_strndup(const char *src, size_t n){
     char *dst = malloc(n + 1);
     if (!dst) return NULL;
 
@@ -36,7 +45,7 @@ static inline char *mk_strndup(const char *src, size_t n){
     return dst;
 }
 
-static inline char *load_content(char *file_path){
+char *load_content(const char *file_path){
 	FILE* mk_file = fopen(file_path, "rb");
 
 	if(!mk_file){
@@ -70,7 +79,7 @@ static inline char *load_content(char *file_path){
 	return content;
 }
 
-static inline mk_document read_content(char *content){
+mk_document read_content(char *content){
     mk_document doc = {0};
     char *p = content;
     int position_order = 0;
@@ -169,7 +178,7 @@ static inline mk_document read_content(char *content){
     return doc;
 }
 
-static inline void mk_document_free(mk_document *doc){
+void mk_document_free(mk_document *doc){
     if(!doc || !doc->blocks) return;
 
     for(size_t i = 0; i < doc->block_count; i++){
@@ -181,4 +190,5 @@ static inline void mk_document_free(mk_document *doc){
     doc->block_count = 0;
 }
 
+#endif
 #endif
