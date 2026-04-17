@@ -10,7 +10,8 @@ typedef enum {
     MK_CODE,
 	MK_IMAGE,
     MK_LINK,
-	MK_QUOTE
+	MK_QUOTE,
+    MK_META
 } mk_block_type;
 
 typedef struct{
@@ -150,12 +151,28 @@ mk_document read_content(const char *content){
 		}
 		else if(line_start[0] == '>'){
             current->type = MK_QUOTE;
-			const char *start = line_start + 1;
-			if(*start == ' ') start++;
-            current->text = mk_strndup(line_start + 2, len - 2);
+
+            const char *start = line_start + 1;
+            if(*start == ' ') start++;
+
+            size_t new_len = (line_start + len) - start;
+            current->text = mk_strndup(start, new_len);
+
             position_order++;
             current->pos = position_order;
-		}
+        }
+        else if(line_start[0] == '@'){
+            current->type = MK_META;
+
+            const char *start = line_start + 1;
+            if(*start == ' ') start++;
+
+            size_t new_len = (line_start + len) - start;
+            current->text = mk_strndup(start, new_len);
+
+            position_order++;
+            current->pos = position_order;
+        }
         else{
             current->type = MK_PARAGRAPH;
             current->text = mk_strndup(line_start, len);

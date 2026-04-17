@@ -1,3 +1,5 @@
+@ tags: tag1, tag2, tag3
+
 # Here is a title 1
 
 ## Here is a title 2
