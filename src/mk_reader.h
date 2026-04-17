@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-typedef enum {
+typedef enum{
     MK_HEADING,
     MK_PARAGRAPH,
     MK_LIST,
@@ -13,6 +13,13 @@ typedef enum {
 	MK_QUOTE,
     MK_META
 } mk_block_type;
+
+typedef enum{
+    META_TAG,
+    META_DATE,
+    META_AUTHOR,
+    META_GENERIC
+} mk_meta_value;
 
 typedef struct{
     mk_block_type type;
@@ -187,8 +194,37 @@ mk_document read_content(const char *content){
             const char *start = line_start + 1;
             if(*start == ' ') start++;
 
-            size_t new_len = (line_start + len) - start;
-            current->text = mk_strndup(start, new_len);
+            const char *end = line_start + len;
+
+            const char *sep = memchr(start, ':', end - start);
+
+            if(sep){
+                size_t key_len = sep - start;
+
+                if(key_len == 4 && strncmp(start, "tags", 4) == 0){
+                    current->level = META_TAG;
+                }
+                else if(key_len == 4 && strncmp(start, "date", 4) == 0){
+                    current->level = META_DATE;
+                }
+                else if(key_len == 6 && strncmp(start, "author", 6) == 0){
+                    current->level = META_AUTHOR;
+                }
+                else{
+                    current->level = META_GENERIC;
+                }
+
+                const char *value = sep + 1;
+                if(*value == ' ') value++;
+
+                size_t value_len = end - value;
+                current->text = mk_strndup(value, value_len);
+            }
+            else{
+                current->level = META_GENERIC;
+                size_t value_len = end - start;
+                current->text = mk_strndup(start, value_len);
+            }
 
             position_order++;
             current->pos = position_order;
