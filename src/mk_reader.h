@@ -122,22 +122,42 @@ mk_document read_content(const char *content){
             position_order++;
             current->pos = position_order;
         }
-        else if(len >= 3 && line_start[0] == '`' && line_start[1] == '`' && line_start[2] == '`'){
+        else if(len >= 3 && strncmp(line_start, "```", 3) == 0){
             current->type = MK_CODE;
-			const char *code_start = p;
-			char *code_end = strstr(code_start, "```\n");
-			size_t code_len;
-			if(code_end){
-				code_len = (size_t)(code_end - code_start);
-				p = code_end + 4;
-			} else {
-				code_len = strlen(code_start);
-				p += code_len;
-			}
-            current->text = mk_strndup(code_start, code_len);
+
+            const char *code_start = p;
+            const char *code_end = NULL;
+
+            while(*p){
+                const char *next_line = p;
+                const char *newline = strchr(p, '\n');
+
+                size_t next_len;
+                if(newline){
+                    next_len = (size_t)(newline - next_line);
+                    p = newline + 1;
+                } else {
+                    next_len = strlen(next_line);
+                    p += next_len;
+                }
+
+                if(next_len >= 3 && strncmp(next_line, "```", 3) == 0){
+                    code_end = next_line;
+                    break;
+                }
+            }
+
+            if(code_end){
+                size_t code_len = code_end - code_start;
+                current->text = mk_strndup(code_start, code_len);
+            }else{
+                size_t code_len = strlen(code_start);
+                current->text = mk_strndup(code_start, code_len);
+            }
+
             position_order++;
             current->pos = position_order;
-		}
+        }
 		else if((line_start[0] == '!' && line_start[1] == '[') || (line_start[0] == '[')){
 			char *url_start = strchr(line_start, '(');
 			char *url_end   = strchr(line_start, ')');
