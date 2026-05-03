@@ -1,6 +1,11 @@
 # CReaders
 
 CReaders is a small collection of header-only C libraries for parsing structured text formats and exposing their content as block-based data structures.
+## Current status
+
+This is a experimental, but already supports basic Markdown block parsing.
+It is currently intended for small tools, static site generators, personal
+automation and educational use.
 
 ## Extensions available
 
