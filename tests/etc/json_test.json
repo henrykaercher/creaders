@@ -1,0 +1,87 @@
+{
+    "name": "Example Project",
+    "version": 1,
+    "active": true,
+    "description": "A sample JSON document for parser testing.",
+    "license": null,
+
+    "metadata": {
+        "created": "2026-01-01",
+        "updated": "2026-07-10",
+        "owner": {
+            "id": 1001,
+            "username": "admin"
+        }
+    },
+
+    "settings": {
+        "fullscreen": false,
+        "vsync": true,
+        "width": 1920,
+        "height": 1080,
+        "volume": 0.75
+    },
+
+    "items": [
+        {
+            "id": 1,
+            "name": "Sword",
+            "damage": 12
+        },
+        {
+            "id": 2,
+            "name": "Shield",
+            "defense": 8
+        },
+        {
+            "id": 3,
+            "name": "Potion",
+            "heal": 50
+        }
+    ],
+
+    "numbers": [
+        0,
+        1,
+        -1,
+        3.14159,
+        -42.75,
+        1.23e5,
+        -4.56E-2
+    ],
+
+    "booleans": [
+        true,
+        false
+    ],
+
+    "mixed": [
+        "text",
+        123,
+        4.56,
+        true,
+        false,
+        null,
+        {
+            "nested": "object"
+        },
+        [
+            1,
+            2,
+            3
+        ]
+    ],
+
+    "empty_object": {},
+
+    "empty_array": [],
+
+    "escaped": {
+        "quote": "\"quoted\"",
+        "backslash": "C:\\Folder\\File.txt",
+        "newline": "Line 1\nLine 2",
+        "tab": "Column1\tColumn2",
+        "slash": "https://example.com",
+        "unicode": "\u03C0"
+    }
+}

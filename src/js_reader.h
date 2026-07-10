@@ -66,5 +66,30 @@ char *js_strndup(const char *src, size_t n){
     return dst;
 }
 
+char *js_load_content(const char *file_path){
+	FILE* js_file = fopen(file_path, "rb");
+
+	if(!js_file){
+        perror("fopen");
+		return NULL;
+	}
+
+	fseek(js_file, 0, SEEK_END);
+    long file_size = ftell(js_file);
+	rewind(js_file);
+
+	char *content = malloc(file_size + 1);
+	if(!content){
+		fclose(js_file);
+		return NULL;
+	}
+
+	size_t bytes_read = fread(content, 1, file_size, js_file);
+	content[bytes_read] = '\0';
+
+	fclose(js_file);
+	return content;
+}
+
 #endif //JS_READER_IMPLEMENTATION
 #endif //JS_READER

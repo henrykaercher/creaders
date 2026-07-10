@@ -2,6 +2,10 @@ make
 make.old
 test_mk
 test_mk.old
+test_js
+test_js.old
+test_xml
+test_xml.old
 main.c
 build/
 docs/
@@ -10,3 +14,4 @@ docs/
 *.png
 *.jpeg
 *.o
+.gdbinit
