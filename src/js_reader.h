@@ -13,6 +13,12 @@ typedef enum{
 	JS_NULL
 }js_type;
 
+typedef enum{
+	JS_OK,
+	JS_ERR_PARSE,
+	JS_ERR_MEMORY
+}js_result;
+
 typedef struct js_member js_member;
 typedef struct js_object js_object;
 typedef struct js_array js_array;
@@ -44,15 +50,26 @@ struct js_member{
 	js_data value;
 };
 
+typedef struct{
+    const char *begin;
+    const char *cur;
+    size_t line;
+    size_t column;
+}parser_t;
+
 char *js_strndup(const char *src, size_t n);
 char *js_load_content(const char *file_path);
-js_data js_read_content(const char *content);
+js_result json_parse(const char *path, js_data **out);
+void skip_spaces(parser_t *p);
+js_data parse_value(parser_t *p);
+js_data parse_bool(parser_t *p);
 void js_free(js_data *data);
 
 #ifdef JS_READER_IMPLEMENTATION
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 // required for C11
 char *js_strndup(const char *src, size_t n){
@@ -89,6 +106,92 @@ char *js_load_content(const char *file_path){
 
 	fclose(js_file);
 	return content;
+}
+
+js_result json_parse(const char *path, js_data **out){
+    if(!path || !out) return JS_ERR_PARSE;
+
+    char *content = js_load_content(path);
+    if(!content) return JS_ERR_MEMORY; 
+
+    parser_t p = { .begin = content, .cur = content, .line = 1, .column = 1 };
+    
+    skip_spaces(&p);
+    js_data root = parse_value(&p);
+    *out = malloc(sizeof(js_data));
+    if(!*out){
+		free(content);
+		return JS_ERR_MEMORY;
+	}
+
+    **out = root;
+    free(content);
+
+    if(*p.cur != '\0') return JS_ERR_PARSE;
+
+    return JS_OK;
+}
+
+void skip_spaces(parser_t *p){
+	while(isspace((unsigned char)*p->cur)){
+		p->cur++;
+	}
+}
+
+js_data parse_value(parser_t *p){
+	skip_spaces(p);
+
+	//pointers are really something...
+	switch(*p->cur){
+		case '{': return parse_object(p);
+		case '[': return parse_array(p);
+		case '"': return parse_string(p);
+		case 't': return parse_bool(p);
+		case 'f': return parse_bool(p);
+		case 'n': return parse_null(p);
+		default:
+			if(*p->cur == '-' || isdigit((unsigned char)*p->cur))
+				return parse_number(p);
+	}
+}
+
+js_data parse_bool(parser_t *p){
+	js_data val = { .type = JS_BOOL };
+	skip_spaces(p);
+
+	if(strncmp(p->cur, "true", 4) == 0){
+		value.u.boolean = true;
+		p->cur += 4;
+	}
+	else if(strncmp(p->cur, "false", 5) == 0){
+		value.u.boolean = false;
+		p->cur += 5;
+	}
+
+	return val;
+}
+
+void js_free(js_data *data){
+    if (!data) return;
+
+    switch(data->type){
+        case JS_STRING: free(data->u.string); break;
+        case JS_OBJECT:
+            for(size_t i = 0; i < data->u.object.count; i++){
+                free(data->u.object.members[i].key);
+                js_free(&data->u.object.members[i].value);
+            }
+            free(data->u.object.members);
+            break;
+        case JS_ARRAY:
+            for(size_t i = 0; i < data->u.array.count; i++){
+                js_free(&data->u.array.values[i]);
+            }
+            free(data->u.array.values);
+            break;
+        default: break;
+    }
+    free(data);
 }
 
 #endif //JS_READER_IMPLEMENTATION
