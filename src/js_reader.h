@@ -42,7 +42,7 @@ struct js_data{
 		char *string;
 		double number;
 		bool boolean;
-	};
+	}u;
 };
 
 struct js_member{
@@ -63,6 +63,7 @@ js_result json_parse(const char *path, js_data **out);
 void skip_spaces(parser_t *p);
 js_data parse_value(parser_t *p);
 js_data parse_bool(parser_t *p);
+void js_cleanup_internals(js_data *data);
 void js_free(js_data *data);
 
 #ifdef JS_READER_IMPLEMENTATION
@@ -157,40 +158,52 @@ js_data parse_value(parser_t *p){
 
 js_data parse_bool(parser_t *p){
 	js_data val = { .type = JS_BOOL };
-	skip_spaces(p);
 
 	if(strncmp(p->cur, "true", 4) == 0){
 		value.u.boolean = true;
 		p->cur += 4;
+		p->column += 4;
 	}
 	else if(strncmp(p->cur, "false", 5) == 0){
 		value.u.boolean = false;
 		p->cur += 5;
+		p->column += 5;
 	}
 
 	return val;
 }
 
-void js_free(js_data *data){
+void js_cleanup_internals(js_data *data){
     if (!data) return;
 
     switch(data->type){
-        case JS_STRING: free(data->u.string); break;
+        case JS_STRING:
+            free(data->u.string);
+            break;
+
         case JS_OBJECT:
             for(size_t i = 0; i < data->u.object.count; i++){
                 free(data->u.object.members[i].key);
-                js_free(&data->u.object.members[i].value);
+                js_cleanup_internals(&data->u.object.members[i].value);
             }
             free(data->u.object.members);
             break;
+
         case JS_ARRAY:
-            for(size_t i = 0; i < data->u.array.count; i++){
-                js_free(&data->u.array.values[i]);
+            for(size_t i = 0; i < data->u.array.count; i++) {
+                js_cleanup_internals(&data->u.array.values[i]);
             }
             free(data->u.array.values);
             break;
-        default: break;
+
+        default:
+            break;
     }
+}
+
+void js_free(js_data *data){
+    if (!data) return;
+	js_cleanup_internals(data);
     free(data);
 }
 
