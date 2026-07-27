@@ -63,6 +63,7 @@ js_result json_parse(const char *path, js_data **out);
 void skip_spaces(parser_t *p);
 js_data parse_value(parser_t *p);
 js_data parse_string(parser_t *p);
+js_data parse_number(parser_t *p);
 js_data parse_bool(parser_t *p);
 void js_cleanup_internals(js_data *data);
 void js_free(js_data *data);
@@ -210,6 +211,26 @@ js_data parse_string(parser_t *p){
 	if(*p->cur == '"'){
 		p->cur++;
 		p->column++;
+	}
+
+	return val;
+}
+
+js_data parse_number(parser_t *p){
+	js_data val = { 
+		.type = JS_NUMBER,
+		.u.number = 0.0
+	};
+
+	char *endptr = NULL;
+	val.u.number = strtod(p->cur, &endptr);
+
+	if(endptr != p->cur){
+		p->column += (size_t)(endptr - p->cur);
+		p->cur = endptr;
+	}
+	else{
+		printf("No valid number at line: %size, column %size ('%s')\n", p->line, p->column, p->cur);
 	}
 
 	return val;
