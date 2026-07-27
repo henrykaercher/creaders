@@ -62,6 +62,7 @@ char *js_load_content(const char *file_path);
 js_result json_parse(const char *path, js_data **out);
 void skip_spaces(parser_t *p);
 js_data parse_value(parser_t *p);
+js_data parse_string(parser_t *p);
 js_data parse_bool(parser_t *p);
 void js_cleanup_internals(js_data *data);
 void js_free(js_data *data);
@@ -173,8 +174,49 @@ js_data parse_bool(parser_t *p){
 	return val;
 }
 
+js_data parse_string(parser_t *p){
+	js_data val = { 
+		.type = JS_STRING,
+		.u.string = NULL
+	};
+
+	if(*p->cur != '"') return val;
+
+	p->cur++;
+	p->column++;
+
+	const char *start = p->cur;
+	while(*p->cur != '\0'){
+		if(*p->cur == '\\'){
+			p->cur++;
+			p->column++;
+			if(*p->cur != '\0'){
+				p->cur++;
+				p->column++;
+			}
+		}
+		else if(*p->cur == '"'){
+			break;
+		}
+		else{
+			p->cur++;
+			p->column++;
+		}
+	}
+
+	size_t length = (size_t)(p->cur - start);
+	val.u.string = js_strndup(start, length);
+
+	if(*p->cur == '"'){
+		p->cur++;
+		p->column++;
+	}
+
+	return val;
+}
+
 void js_cleanup_internals(js_data *data){
-    if (!data) return;
+    if(!data) return;
 
     switch(data->type){
         case JS_STRING:
@@ -190,7 +232,7 @@ void js_cleanup_internals(js_data *data){
             break;
 
         case JS_ARRAY:
-            for(size_t i = 0; i < data->u.array.count; i++) {
+            for(size_t i = 0; i < data->u.array.count; i++){
                 js_cleanup_internals(&data->u.array.values[i]);
             }
             free(data->u.array.values);
@@ -202,7 +244,7 @@ void js_cleanup_internals(js_data *data){
 }
 
 void js_free(js_data *data){
-    if (!data) return;
+    if(!data) return;
 	js_cleanup_internals(data);
     free(data);
 }
