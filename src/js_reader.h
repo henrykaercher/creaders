@@ -129,13 +129,21 @@ js_result json_parse(const char *path, js_data **out){
     *out = malloc(sizeof(js_data));
     if(!*out){
 		free(content);
+		js_cleanup_internals(&root);
 		return JS_ERR_MEMORY;
 	}
 
     **out = root;
+	skip_spaces(&p);
+
+	bool has_trailing_garbage = (*p.cur != '\0');
     free(content);
 
-    if(*p.cur != '\0') return JS_ERR_PARSE;
+    if(has_trailing_garbage){
+		js_free(*out);
+		*out = NULL;
+		return JS_ERR_PARSE;
+	}
 
     return JS_OK;
 }
@@ -284,15 +292,23 @@ js_data parse_array(parser_t *p){
 
 	size_t capacity = 4;
 	val.u.array.values = malloc(capacity * sizeof(js_data));
+	if(!val.u.array.values){
+        val.u.array.count = 0;
+        return val;
+    }
 
 	while(*p->cur != '\0'){
 		js_data elem = parse_value(p);
 
 		if(val.u.array.count >= capacity){
 			capacity *= 2;
-			val.u.array.values = realloc(val.u.array.values, capacity * sizeof(js_data));
+			void *tmp = realloc(val.u.array.values, capacity * sizeof(js_data));
+			if(!tmp){
+				js_cleanup_internals(&elem);
+				break; 
+			}
+			val.u.array.values = tmp;
 		}
-
 		val.u.array.values[val.u.array.count++] = elem;
 
 		skip_spaces(p);
@@ -326,6 +342,10 @@ js_data parse_object(parser_t *p){
 
     size_t capacity = 4;
     val.u.object.members = malloc(capacity * sizeof(js_member));
+	if(!val.u.object.members){
+        val.u.object.count = 0;
+        return val;
+    }
 
     while(*p->cur != '\0'){
         skip_spaces(p);
@@ -346,8 +366,14 @@ js_data parse_object(parser_t *p){
 
         if(val.u.object.count >= capacity){
             capacity *= 2;
-            val.u.object.members = realloc(val.u.object.members, capacity * sizeof(js_member));
-        }
+           	void *tmp = realloc(val.u.object.members, capacity * sizeof(js_member));
+			if(!tmp){
+				free(key_data.u.string);
+                js_cleanup_internals(&field_val);
+				break; 
+			}
+			val.u.object.members = tmp;
+		}
 
         val.u.object.members[val.u.object.count].key = key_data.u.string;
         val.u.object.members[val.u.object.count].value = field_val;
