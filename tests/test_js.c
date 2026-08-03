@@ -1,85 +1,172 @@
 #define JS_READER_IMPLEMENTATION
 #include "../src/js_reader.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-void print_json(js_data *data, int indent);
+static void print_indent(int indent);
+static void print_json(const js_data *data, int indent);
+static void print_type(const js_data *data);
 
 int main(int argc, char **argv){
-    if(argc < 2){
-        printf("Usage: %s <path_to_file.json>\n", argv[0]);
-        return 1;
+    if(argc != 2){
+        fprintf(stderr, "Usage: %s <file.json>\n", argv[0]);
+        return EXIT_FAILURE;
     }
-
-    const char *test_file = argv[1];
-    printf("Reading the file: %s\n\n", test_file);
 
     js_data *root = NULL;
-    js_result res = json_parse(test_file, &root);
 
-    if(res == JS_OK){
-        printf("--- JSON READ SUCCESSFULLY  ---\n");
-        print_json(root, 0);
-        printf("-----------------------------\n");
-    }
-	else if(res == JS_ERR_PARSE){
-        printf("Erro: Invalid JSON format. Verify the syntax.\n");
-    }
-	else if(res == JS_ERR_MEMORY){
-        printf("Erro: Can't find the file or out of memory\n");
+    printf("Opening: %s\n\n", argv[1]);
+
+    js_result result = json_parse(argv[1], &root);
+
+    if(result != JS_OK){
+        switch(result){
+            case JS_ERR_PARSE:
+                fprintf(stderr, "Parse error.\n");
+                break;
+
+            case JS_ERR_MEMORY:
+                fprintf(stderr, "Memory/File error.\n");
+                break;
+
+            default:
+                fprintf(stderr, "Unknown error.\n");
+        }
+
+        return EXIT_FAILURE;
     }
 
-    if(root){
-        js_free(root);
-        printf("\nMemory free.\n");
+    printf("========== Parsed JSON ==========\n\n");
+    print_json(root, 0);
+
+    printf("\n========== Root ==========\n");
+    print_type(root);
+
+    if(root->type == JS_OBJECT){
+        printf("Members : %zu\n", root->u.object.count);
     }
 
-    return 0;
+    if(root->type == JS_ARRAY){
+        printf("Elements: %zu\n", root->u.array.count);
+    }
+
+    printf("\n========== API Test ==========\n");
+
+    js_data *item = js_get_object(root, "items");
+
+    if(item){
+        printf("Found key \"item\"\n");
+        print_type(item);
+
+        switch(item->type){
+            case JS_STRING:
+                printf("Value : %s\n", js_as_string(item));
+                break;
+
+            case JS_NUMBER:
+                printf("Value : %.2f\n", js_as_number(item, 0));
+                break;
+
+            case JS_BOOL:
+                printf("Value : %s\n",
+                       js_as_bool(item, false) ? "true" : "false");
+                break;
+
+            default:
+                printf("Complex value\n");
+                break;
+        }
+    }else{
+        printf("Key \"items\" not found.\n");
+    }
+
+    js_free(root);
+
+    printf("\nMemory released successfully.\n");
+
+    return EXIT_SUCCESS;
 }
 
-void print_json(js_data *data, int indent){
-    if(!data) return;
+static void print_indent(int indent){
+    while(indent--)
+        printf("    ");
+}
 
-    for(int i = 0; i < indent; i++) printf("  ");
+static void print_type(const js_data *data){
+    static const char *names[] = {
+        "OBJECT",
+        "ARRAY",
+        "STRING",
+        "NUMBER",
+        "BOOLEAN",
+        "NULL"
+    };
 
+    printf("Type  : %s\n", names[data->type]);
+}
+
+static void print_json(const js_data *data, int indent){
     switch(data->type){
+
         case JS_NULL:
-            printf("null\n");
+            printf("null");
             break;
+
         case JS_BOOL:
-            printf("%s\n", data->u.boolean ? "true" : "false");
+            printf("%s", data->u.boolean ? "true" : "false");
             break;
+
         case JS_NUMBER:
-            printf("%f\n", data->u.number);
+            printf("%g", data->u.number);
             break;
+
         case JS_STRING:
-            printf("\"%s\"\n", data->u.string);
+            printf("\"%s\"", data->u.string);
             break;
+
         case JS_ARRAY:
+
             printf("[\n");
+
             for(size_t i = 0; i < data->u.array.count; i++){
+
+                print_indent(indent + 1);
+
                 print_json(&data->u.array.values[i], indent + 1);
+
+                if(i + 1 != data->u.array.count)
+                    printf(",");
+
+                printf("\n");
             }
-            for(int i = 0; i < indent; i++) printf("  ");
-            printf("]\n");
+
+            print_indent(indent);
+            printf("]");
             break;
+
         case JS_OBJECT:
+
             printf("{\n");
+
             for(size_t i = 0; i < data->u.object.count; i++){
-                for(int j = 0; j < indent + 1; j++) printf("  ");
-                printf("\"%s\": ", data->u.object.members[i].key);
-                
-                if(data->u.object.members[i].value.type == JS_OBJECT || 
-                    data->u.object.members[i].value.type == JS_ARRAY){
-                    printf("\n");
-                    print_json(&data->u.object.members[i].value, indent + 1);
-                }
-				else{
-                    print_json(&data->u.object.members[i].value, 0); 
-                }
+
+                print_indent(indent + 1);
+
+                printf("\"%s\": ",
+                       data->u.object.members[i].key);
+
+                print_json(&data->u.object.members[i].value,
+                           indent + 1);
+
+                if(i + 1 != data->u.object.count)
+                    printf(",");
+
+                printf("\n");
             }
-            for(int i = 0; i < indent; i++) printf("  ");
-            printf("}\n");
+
+            print_indent(indent);
+            printf("}");
             break;
     }
 }

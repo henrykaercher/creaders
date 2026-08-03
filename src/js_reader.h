@@ -70,6 +70,13 @@ js_data parse_number(parser_t *p);
 js_data parse_bool(parser_t *p);
 js_data parse_null(parser_t *p);
 
+//helpers
+js_data *js_get_object(js_data *obj, const char *key);
+js_data *js_get_array(js_data *arr, size_t index);
+const char *js_as_string(js_data *data);
+double js_as_number(js_data *data, double default_val);
+bool js_as_bool(js_data *data, bool default_val);
+
 void js_cleanup_internals(js_data *data);
 void js_free(js_data *data);
 
@@ -429,6 +436,41 @@ void js_free(js_data *data){
     if(!data) return;
 	js_cleanup_internals(data);
     free(data);
+}
+
+js_data *js_get_object(js_data *obj, const char *key){
+    if(!obj || obj->type != JS_OBJECT || !key) return NULL;
+
+    for(size_t i = 0; i < obj->u.object.count; i++){
+        if(strcmp(obj->u.object.members[i].key, key) == 0){
+            return &obj->u.object.members[i].value;
+        }
+    }
+    return NULL;
+}
+
+js_data *js_get_array(js_data *arr, size_t index){
+    if(!arr || arr->type != JS_ARRAY) return NULL;
+
+    if(index < arr->u.array.count){
+        return &arr->u.array.values[index];
+    }
+    return NULL;
+}
+
+const char *js_as_string(js_data *data){
+    if(data && data->type == JS_STRING) return data->u.string;
+    return NULL;
+}
+
+double js_as_number(js_data *data, double default_val){
+    if(data && data->type == JS_NUMBER) return data->u.number;
+    return default_val;
+}
+
+bool js_as_bool(js_data *data, bool default_val){
+    if(data && data->type == JS_BOOL) return data->u.boolean;
+    return default_val;
 }
 
 #endif //JS_READER_IMPLEMENTATION
