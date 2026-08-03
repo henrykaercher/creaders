@@ -60,11 +60,16 @@ typedef struct{
 char *js_strndup(const char *src, size_t n);
 char *js_load_content(const char *file_path);
 js_result json_parse(const char *path, js_data **out);
+
 void skip_spaces(parser_t *p);
 js_data parse_value(parser_t *p);
+js_data parse_object(parser_t *p);
+js_data parse_array(parser_t *p);
 js_data parse_string(parser_t *p);
 js_data parse_number(parser_t *p);
 js_data parse_bool(parser_t *p);
+js_data parse_null(parser_t *p);
+
 void js_cleanup_internals(js_data *data);
 void js_free(js_data *data);
 
@@ -136,8 +141,14 @@ js_result json_parse(const char *path, js_data **out){
 }
 
 void skip_spaces(parser_t *p){
-	while(isspace((unsigned char)*p->cur)){
-		p->cur++;
+	while(*p->cur != '\0' && isspace((unsigned char)*p->cur)){
+		if(*p->cur == '\n'){
+			p->line++;
+			p->column = 1;
+		}
+		else{
+			p->cur++;
+		}
 	}
 }
 
@@ -152,27 +163,39 @@ js_data parse_value(parser_t *p){
 		case 't': return parse_bool(p);
 		case 'f': return parse_bool(p);
 		case 'n': return parse_null(p);
-		default:
-			if(*p->cur == '-' || isdigit((unsigned char)*p->cur))
-				return parse_number(p);
+		default: 
+			if(*p->cur == '-' || isdigit((unsigned char)*p->cur)) return parse_number(p);
+			break;
 	}
+
+	js_data err = { .type = JS_NULL };
+	return err;
 }
 
 js_data parse_bool(parser_t *p){
-	js_data val = { .type = JS_BOOL };
+	js_data val = { .type = JS_BOOL, .u.boolean = false };
 
 	if(strncmp(p->cur, "true", 4) == 0){
-		value.u.boolean = true;
+		val.u.boolean = true;
 		p->cur += 4;
 		p->column += 4;
 	}
 	else if(strncmp(p->cur, "false", 5) == 0){
-		value.u.boolean = false;
+		val.u.boolean = false;
 		p->cur += 5;
 		p->column += 5;
 	}
 
 	return val;
+}
+
+js_data parse_null(parser_t *p){
+    js_data val = { .type = JS_NULL };
+    if(strncmp(p->cur, "null", 4) == 0){
+        p->cur += 4;
+        p->column += 4;
+    }
+    return val;
 }
 
 js_data parse_string(parser_t *p){
