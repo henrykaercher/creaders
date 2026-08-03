@@ -29,7 +29,7 @@ Clone the repository and run the installation script:
 ```sh
 git clone https://github.com/<your-user>/CReaders.git
 cd CReaders
-./install.sh
+sudo ./install.sh
 ```
 
 After installation the headers become available globally:
