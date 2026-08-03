@@ -153,9 +153,11 @@ void skip_spaces(parser_t *p){
 		if(*p->cur == '\n'){
 			p->line++;
 			p->column = 1;
+			p->cur++;
 		}
 		else{
 			p->cur++;
+			p->column++;
 		}
 	}
 }
