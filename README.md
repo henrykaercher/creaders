@@ -27,7 +27,7 @@ Each library can be used independently.
 Clone the repository and run the installation script:
 
 ```sh
-git clone https://github.com/<your-user>/CReaders.git
+git clone https://github.com/henrykaercher/CReaders.git
 cd CReaders
 sudo ./install.sh
 ```
