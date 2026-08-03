@@ -185,16 +185,26 @@ js_data parse_bool(parser_t *p){
 		p->cur += 5;
 		p->column += 5;
 	}
+	else{
+		val.type = JS_NULL;
+		p->cur++;
+        p->column++;
+	}
 
 	return val;
 }
 
 js_data parse_null(parser_t *p){
     js_data val = { .type = JS_NULL };
+
     if(strncmp(p->cur, "null", 4) == 0){
         p->cur += 4;
         p->column += 4;
     }
+	else{
+		p->cur++;
+        p->column++;
+	}
     return val;
 }
 
@@ -253,20 +263,20 @@ js_data parse_number(parser_t *p){
 		p->cur = endptr;
 	}
 	else{
-		printf("No valid number at line: %size, column %size ('%s')\n", p->line, p->column, p->cur);
+		printf("No valid number at line: %zu, column %zu ('%s')\n", p->line, p->column, p->cur);
 	}
 
 	return val;
 }
 
 js_data parse_array(parser_t *p){
-	js_data val = .type = JS_ARRAY, .u.array = { .count = 0, .values = NULL } };
+	js_data val = { .type = JS_ARRAY, .u.array = { .count = 0, .values = NULL } };
 	
 	p->cur++;
 	p->column++;
 
 	skip_spaces(p);
-	if(*p->cur == "]"){
+	if(*p->cur == ']'){
 		p->cur++;
 		p->column++;
 		return val;
