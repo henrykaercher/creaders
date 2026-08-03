@@ -1,72 +1,97 @@
 # CReaders
 
-CReaders is a small collection of header-only C libraries for parsing structured text formats and exposing their content as block-based data structures.
-## Current status
+**CReaders** is a collection of single-header C libraries for reading and parsing structured text formats.
 
-This is a experimental, but already supports basic Markdown block parsing.
-It is currently intended for small tools, static site generators, personal
-automation and educational use.
+Each parser is independent and exposes a simple C API designed for lightweight applications, command-line tools, game engines, configuration systems, and educational projects.
 
-## Extensions available
+## Features
 
-* Markdown
-* JSON **(TODO)**
-* XML **(TODO)**
+* Header-only libraries
+* Written in ISO C
+* No external dependencies
+* Simple data structures
+* Easy integration into existing projects
 
-> **Note:** These libraries do not convert between formats. Each parser is independent.
+## Available libraries
 
-## How to use
+| Library  | Status       |
+| -------- | ------------ |
+| Markdown | Stable       |
+| JSON     | Experimental |
+| XML      | Planned      |
 
-Include the header for the format you want:
+Each library can be used independently.
 
-```c
-#define MK_READER_IMPLEMENTATION
-#include "mk_reader.h"
+## Installation
+
+Clone the repository and run the installation script:
+
+```sh
+git clone https://github.com/<your-user>/CReaders.git
+cd CReaders
+./install.sh
 ```
 
-### Loading and parsing a file
+After installation the headers become available globally:
 
 ```c
-char *buffer = load_content("mkfile.md");
-if (!buffer) {
-    return 1;
+#include <creaders/js_reader.h>
+#include <creaders/mk_reader.h>
+```
+
+You can also copy the desired header directly into your project if you prefer not to install it.
+
+## Usage
+
+Every parser follows the same implementation pattern.
+
+```c
+#define JS_READER_IMPLEMENTATION
+#include <creaders/js_reader.h>
+```
+
+Only one source file in your project should define the implementation macro.
+
+Other source files only need:
+
+```c
+#include <creaders/js_reader.h>
+```
+
+## Example
+
+```c
+js_data *root = NULL;
+
+if(json_parse("config.json", &root) == JS_OK){
+    /* use the parsed data */
 }
 
-mk_document doc = read_content(buffer);
+js_free(root);
 ```
 
-The parser splits the file into blocks stored in `mk_document`.
+## Project goals
 
-### Accessing parsed data
+CReaders focuses on simplicity rather than implementing every corner case of each specification.
 
-```c
-for (size_t i = 0; i < doc.block_count; i++) {
-    mk_block *b = &doc.blocks[i];
+The libraries are intended to be:
 
-    printf("type: %d\n", b->type);
-    printf("text: \"%s\"\n", b->text);
-    printf("level: %d\n", b->level);
-    printf("position: %d\n\n", b->pos);
-}
-```
+* Small
+* Easy to understand
+* Easy to embed
+* Suitable for learning
+* Suitable for lightweight applications
 
-### Memory management
+## Roadmap
 
-When finished, free all allocated memory:
+* Improve JSON specification compliance
+* XML parser
+* Better diagnostics and error reporting
+* Additional helper functions
+* More examples and documentation
+* Unit tests
 
-```c
-mk_document_free(&doc);
-free(buffer);
-```
+## License
 
-## Notes
+MIT License.
 
-* `pos` represents the order of blocks in the document
-* `level` is only meaningful for headings
-* The parser is line-based and does not fully implement the Markdown specification
-
-## Status
-
-This project is experimental and under active development.
-
-Expect rough edges and incomplete features.
