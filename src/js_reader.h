@@ -259,6 +259,106 @@ js_data parse_number(parser_t *p){
 	return val;
 }
 
+js_data parse_array(parser_t *p){
+	js_data val = .type = JS_ARRAY, .u.array = { .count = 0, .values = NULL } };
+	
+	p->cur++;
+	p->column++;
+
+	skip_spaces(p);
+	if(*p->cur == "]"){
+		p->cur++;
+		p->column++;
+		return val;
+	}
+
+	size_t capacity = 4;
+	val.u.array.values = malloc(capacity * sizeof(js_data));
+
+	while(*p->cur != '\0'){
+		js_data elem = parse_value(p);
+
+		if(val.u.array.count >= capacity){
+			capacity *= 2;
+			val.u.array.values = realloc(val.u.array.values, capacity * sizeof(js_data));
+		}
+
+		val.u.array.values[val.u.array.count++] = elem;
+
+		skip_spaces(p);
+        if(*p->cur == ','){
+            p->cur++;
+            p->column++;
+        }
+		else if(*p->cur == ']'){
+            p->cur++;
+            p->column++;
+            break;
+        }
+		else break;
+	}
+
+    return val;
+}
+
+js_data parse_object(parser_t *p){
+    js_data val = { .type = JS_OBJECT, .u.object = { .count = 0, .members = NULL } };
+    
+    p->cur++;
+    p->column++;
+
+    skip_spaces(p);
+    if(*p->cur == '}'){
+        p->cur++;
+        p->column++;
+        return val;
+    }
+
+    size_t capacity = 4;
+    val.u.object.members = malloc(capacity * sizeof(js_member));
+
+    while(*p->cur != '\0'){
+        skip_spaces(p);
+
+        if(*p->cur != '"') break;
+
+        js_data key_data = parse_string(p);
+        skip_spaces(p);
+
+        if(*p->cur != ':'){
+            free(key_data.u.string);
+            break;
+        }
+        p->cur++;
+        p->column++;
+
+        js_data field_val = parse_value(p);
+
+        if(val.u.object.count >= capacity){
+            capacity *= 2;
+            val.u.object.members = realloc(val.u.object.members, capacity * sizeof(js_member));
+        }
+
+        val.u.object.members[val.u.object.count].key = key_data.u.string;
+        val.u.object.members[val.u.object.count].value = field_val;
+        val.u.object.count++;
+
+        skip_spaces(p);
+        if(*p->cur == ','){
+            p->cur++;
+            p->column++;
+        }
+		else if(*p->cur == '}'){
+            p->cur++;
+            p->column++;
+            break;
+        }
+		else break;
+    }
+
+    return val;
+}
+
 void js_cleanup_internals(js_data *data){
     if(!data) return;
 
